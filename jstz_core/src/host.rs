@@ -14,7 +14,9 @@ use getrandom::{register_custom_getrandom, Error as RandomError};
 use tezos_smart_rollup_host::runtime::{Runtime, RuntimeError, ValueType};
 use tezos_smart_rollup_host::{input, metadata, path};
 
-pub type HostError = RuntimeError;
+pub use tezos_smart_rollup_host::runtime::{
+    Runtime as HostRuntime, RuntimeError as HostError,
+};
 
 #[derive(Debug, Deref, DerefMut)]
 pub struct Host<H: Runtime + 'static> {
@@ -359,7 +361,7 @@ impl HostDefined {
 }
 
 impl Api for HostDefined {
-    fn init<H: Runtime + 'static>(self, context: &mut Context<'_>) {
+    fn init<H: HostRuntime + 'static>(self, context: &mut Context<'_>) {
         let host_defined = ObjectInitializer::with_native(self, context).build();
 
         context

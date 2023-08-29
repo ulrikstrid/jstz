@@ -826,6 +826,7 @@ dependencies = [
  "derive_more",
  "erased-serde",
  "getrandom",
+ "pollster",
  "serde",
  "tezos-smart-rollup-host",
 ]
@@ -843,6 +844,7 @@ dependencies = [
 name = "jstz_kernel"
 version = "0.1.0"
 dependencies = [
+ "boa_engine",
  "jstz_api",
  "jstz_core",
  "jstz_crypto",
