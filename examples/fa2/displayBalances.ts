@@ -6,7 +6,6 @@ async function handler(request : Request) {
     if(request.method == "POST") {
         let body : BalanceResponse [] = await request.json();
         body.forEach(display);
-        console.log(`Displaying balances for address ${request.headers.get("Referer")}`)
         return new Response("Ok!")
     }
 }

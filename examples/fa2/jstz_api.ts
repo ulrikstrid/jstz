@@ -11,7 +11,12 @@ export declare namespace Kv {
 }
 export declare namespace Ledger {
   function selfAddress () : Address;
+  function createContract (code : String) : Promise<Address>;
 }
 export declare namespace Contract {
   async function call(request: Request) : Promise<Response>;
+}
+export declare namespace TextEncoder {
+  function atob(data: string) : string;
+  function btoa(data: string) : string;
 }
