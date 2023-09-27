@@ -131,8 +131,11 @@ function performTransfer(from: Address, operator: Address, transfer: Transfer) {
     assertOperator(from, operator, transfer.token_id);
     transferTokens(from, transfer.to, transfer.token_id, transfer.amount);
 }
-function performTransfers(referer: Address, transfers: Transfers) {
-    transfers.transfers.forEach((transfer) => performTransfer(transfers.from, referer, transfer))
+function performTransfers(referer: Address, transfers: Transfers []) {
+    transfers.forEach(
+        (group) =>
+    group.transfers.forEach((transfer) => performTransfer(group.from, referer, transfer))
+    );
 }
 
 function performUpdateOperator(referer: Address, update: UpdateOperator) {
@@ -207,11 +210,12 @@ async function handler(request: Request): Promise<Response> {
 
             case "/transfer":
                 if (request.method === "POST") {
-                    let transfers = request.json();
-                    if (isTransfers(transfers)) {
+                    let transfers = await request.json();
+                    if (isArray(isTransfers, transfers)) {
                         performTransfers(request.headers.get("Referer"), transfers);
+                        return new Response("Success!");
                     } else {
-                        console.error("Invalid parameters", transfers);
+                        console.error("Invalid parameters", JSON.stringify(transfers));
                         return Response.error();
                     }
                 } else {
@@ -222,12 +226,13 @@ async function handler(request: Request): Promise<Response> {
 
             case "/mint_new":
                 if (request.method === "POST") {
-                    let mint = request.json();
-                    if (isMintNew(mint)) {
+                    let mint = await request.json();
+                    if (isArray(isMintNew,mint)) {
                         // TODO not anybody should be allowed to do this
-                        performMintNew(mint);
+                        mint.forEach(performMintNew);
+                        return new Response("Success!");
                     } else {
-                        console.error("Invalid parameters", mint);
+                        console.error("Invalid parameters", JSON.stringify(mint));
                         return Response.error();
                     }
                 } else {
@@ -238,12 +243,13 @@ async function handler(request: Request): Promise<Response> {
 
             case "/update_operators":
                 if (request.method === "PUT") {
-                    let updates = request.json();
+                    let updates = await request.json();
                   if (isArray(isUpdateOperator, updates)) {
                       updates.forEach((update : UpdateOperator) =>
                         performUpdateOperator(request.headers.get("Referrer"), update));
+                        return new Response("Success!");
                     } else {
-                        console.error("Invalid parameters", updates);
+                        console.error("Invalid parameters", JSON.stringify(updates));
                         return Response.error();
                     }
                 } else {
