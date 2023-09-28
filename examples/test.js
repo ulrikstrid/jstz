@@ -1,3 +1,4 @@
+const subcontract = `
 function handler (request) {
     const url = new URL(request.url);
     const path = url.pathname;
@@ -17,7 +18,7 @@ function handler (request) {
                     transfers: [{ to, token_id, amount }]
                 }];
 
-                let request = new Request(`tezos://${target}/transfer`, {
+                let request = new Request(\`tezos://\${target}/transfer\`, {
                     method: "POST",
                     body: JSON.stringify(transfers)
                 });
@@ -35,7 +36,7 @@ function handler (request) {
                    owner, operator, token_id
                 }));
                 return Contract.call(
-                new Request(`tezos://${target}/update_operators`, {
+                new Request(\`tezos://\${target}/update_operators\`, {
                     method: "PUT",
                     body: JSON.stringify(body)
                 }));
@@ -47,3 +48,10 @@ function handler (request) {
     }
 }
 export default handler;
+`;
+async function handler () {
+    let fa2Contract = "tz4Ehy39DcvT4YQcebEpXpLQTH8B4eA31CJs";
+    let address = Ledger.createContract(subcontract)
+    let result = await Contract.call(new Request(`tezos://${address}/add_operator?fa2_contract=${fa2Contract}&tokens=${tokens}`));
+    return result
+}

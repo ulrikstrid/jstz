@@ -121,6 +121,7 @@ function assertOperator(owner: Address, operator: Address, token_id : TokenId) {
 }
 function assertOwner(owner: Address, referer: Address) {
     if (owner !== referer) {
+        console.log(`${owner} !== ${referer}`)
         throw "FA2_NOT_OWNER"
     }
 }
@@ -187,6 +188,9 @@ async function handler(request: Request): Promise<Response> {
 
     try {
         switch (path) {
+            case "/ping":
+                console.log("Hello from runner contract 👋")
+                return new Response("Pong");
 
             case "/balance_of":
                 if (request.method === "GET") {
@@ -246,7 +250,7 @@ async function handler(request: Request): Promise<Response> {
                     let updates = await request.json();
                   if (isArray(isUpdateOperator, updates)) {
                       updates.forEach((update : UpdateOperator) =>
-                        performUpdateOperator(request.headers.get("Referrer"), update));
+                        performUpdateOperator(request.headers.get("Referer"), update));
                         return new Response("Success!");
                     } else {
                         console.error("Invalid parameters", JSON.stringify(updates));

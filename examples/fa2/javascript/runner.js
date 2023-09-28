@@ -1,6 +1,4 @@
-let subcontract =
-`export default e=>{console.log("hello from  subcontract");var t=new URL(e.url);switch(t.pathname){case"/transfer":var o=t.searchParams.get("to_address"),r=+t.searchParams.get("token_id"),s=+t.searchParams.get("amount"),n=t.searchParams.get("fa2_contract"),o=[{from:Ledger.selfAddress(),transfers:[{to:o,token_id:r,amount:s}]}],r=new Request(\`tezos://\${n}/transfer\`,{method:"POST",body:JSON.stringify(o)});return console.info(r.url),Contract.call(r);case"/add_operator":{s=t.searchParams.get("fa2_contract"),n=JSON.parse(t.searchParams.get("tokens"));let r=e.headers.get("Referer"),a=Ledger.selfAddress();o=n.map(e=>({operation:"add_operator",owner:a,operator:r,token_id:e}));console.info(JSON.stringify(o));let e=new Request(\`tezos://\${s}/\`,{method:"PUT",body:JSON.stringify(o)});return Contract.call(e)}}};`
-
+const subcontract = 'function e(e){var t=new URL(e.url),r=t.pathname;try{switch(r){case"/ping":return console.log("Hello from  subcontract 👋"),new Response("Pong!");case"/transfer":var a=t.searchParams.get("to_address"),o=+t.searchParams.get("token_id"),s=+t.searchParams.get("amount"),n=t.searchParams.get("fa2_contract"),c=[{from:Ledger.selfAddress(),transfers:[{to:a,token_id:o,amount:s}]}],d=new Request(`tezos://${n}/transfer`,{method:"POST",body:JSON.stringify(c)});return console.info(d.url),Contract.call(d);case"/add_operator":{console.info(t);var l=t.searchParams.get("fa2_contract"),f=JSON.parse(t.searchParams.get("tokens"));let r=e.headers.get("Referer"),a=Ledger.selfAddress();var g=f.map(e=>({operation:"add_operator",owner:a,operator:r,token_id:e}));return Contract.call(new Request(`tezos://${l}/update_operators`,{method:"PUT",body:JSON.stringify(g)}))}}}catch(e){return console.error("error in subcontract",e),Response.error()}}export default e;'
 async function showBalances(addresses, contracts, tokens) {
     let requests = contracts.flatMap((owner) => tokens.map((token_id) => ({ owner, token_id })));
     let encodedRequests = TextEncoder.btoa(JSON.stringify(requests));
@@ -9,7 +7,7 @@ async function showBalances(addresses, contracts, tokens) {
     return response;
 }
 async function updateOperators(fa2Contract, contracts, tokens) {
-    let promises = contracts.map((address) => Contract.call(new Request(`tezos://${address}/add_operator?fa2_contract=${fa2Contract}&tokens=${tokens}`)));
+    let promises = contracts.map((address) => Contract.call(new Request(`tezos://${address}/add_operator?fa2_contract=${fa2Contract}&tokens=${JSON.stringify(tokens)}`)));
     return Promise.all(promises);
 }
 async function createContracts(n) {
@@ -70,12 +68,16 @@ async function runStuff(addresses) {
         await showBalances(addresses, contracts, [1, 2]);
     }
     catch (error) {
-        console.error("error in runner", error);
+        console.error(error);
         throw (error);
     }
 }
 async function handler(request) {
     let url = new URL(request.url);
+    if (url.pathname == "/ping") {
+        console.log("Hello from runner contract 👋");
+        return new Response("Pong");
+    }
     let addresses = {
         fa2Contract: url.searchParams.get("fa2_contract"),
         displayContract: url.searchParams.get("display_contract")

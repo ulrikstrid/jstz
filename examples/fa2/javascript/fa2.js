@@ -121,6 +121,7 @@ function assertOperator(owner, operator, token_id) {
 }
 function assertOwner(owner, referer) {
     if (owner !== referer) {
+        console.log(`${owner} != ${referer}`);
         throw "FA2_NOT_OWNER";
     }
 }
@@ -178,6 +179,9 @@ async function handler(request) {
     const path = url.pathname;
     try {
         switch (path) {
+            case "/ping":
+                console.log("Hello from runner contract 👋");
+                return new Response("Pong");
             case "/balance_of":
                 if (request.method === "GET") {
                     let balanceOf = {
@@ -237,7 +241,7 @@ async function handler(request) {
                 if (request.method === "PUT") {
                     let updates = await request.json();
                     if (isArray(isUpdateOperator, updates)) {
-                        updates.forEach((update) => performUpdateOperator(request.headers.get("Referrer"), update));
+                        updates.forEach((update) => performUpdateOperator(request.headers.get("Referer"), update));
                         return new Response("Success!");
                     }
                     else {
@@ -257,7 +261,7 @@ async function handler(request) {
         }
     }
     catch (error) {
-        console.error("error in fa2", error);
+        console.error(error);
         throw error;
     }
 }

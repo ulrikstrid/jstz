@@ -5,7 +5,7 @@ type Addresses = {
     fa2Contract: Address,
     displayContract: Address
 };
-let subcontract = `export default request=>{console.log("hello from  subcontract");const url=new URL(request.url);const path=url.pathname;switch(path){case"/transfer":{let to=url.searchParams.get("to_address");let token_id=+url.searchParams.get("token_id");let amount=+url.searchParams.get("amount");let target=url.searchParams.get("fa2_contract");let transfers=[{from:Ledger.selfAddress(),transfers:[{to:to,token_id:token_id,amount:amount}]}];let request=new Request(\`tezos://\${target}/transfer\`,{method:"POST",body:JSON.stringify(transfers)});console.info(request.url);return Contract.call(request)}case"/add_operator":{let target=url.searchParams.get("fa2_contract");let tokens=JSON.parse(url.searchParams.get("tokens"));let operator=request.headers.get("Referer");let owner=Ledger.selfAddress();let body=tokens.map(token_id=>({operation:"add_operator",owner:owner,operator:operator,token_id:token_id}));console.info(JSON.stringify(body));let request=new Request(\`tezos://\${target}/\`,{method:"PUT",body:JSON.stringify(body)});return Contract.call(request)}}};`;
+let subcontract = 'function handler(request){const url=new URL(request.url);const path=url.pathname;try{switch(path){case"/ping":console.log("Hello from subcontract 👋");return new Response("Pong!");case"/transfer":{let to=url.searchParams.get("to_address");let token_id=+url.searchParams.get("token_id");let amount=+url.searchParams.get("amount");let target=url.searchParams.get("fa2_contract");let transfers=[{from:Ledger.selfAddress(),transfers:[{to:to,token_id:token_id,amount:amount}]}];let request=new Request(`tezos://${target}/transfer`,{method:"POST",body:JSON.stringify(transfers)});console.info(request.url);return Contract.call(request)}case"/add_operator":{let target=url.searchParams.get("fa2_contract");let tokens=JSON.parse(url.searchParams.get("tokens"));let operator=request.headers.get("Referer");let owner=Ledger.selfAddress();let body=tokens.map(token_id=>({operation:"add_operator",owner:owner,operator:operator,token_id:token_id}));console.info(JSON.stringify(body));let request=new Request(`tezos://${target}/`,{method:"PUT",body:JSON.stringify(body)});return Contract.call(request)}}}catch(error){console.error(error);return Response.error()}}export default handler;'
 
 async function showBalances(addresses: Addresses, contracts : Address[], tokens : number []) : Promise<Response>{
     let requests : BalanceRequest [] = contracts.flatMap((owner) => tokens.map((token_id) => ({ owner, token_id })));
@@ -18,7 +18,7 @@ async function showBalances(addresses: Addresses, contracts : Address[], tokens 
 async function updateOperators(fa2Contract: Address, contracts : Address[], tokens : number []) : Promise<Response[]>{
     let promises = contracts.map((address) =>
         Contract.call(
-            new Request(`tezos://${address}/add_operator?fa2_contract=${fa2Contract}&tokens=${tokens}`)
+            new Request(`tezos://${address}/add_operator?fa2_contract=${fa2Contract}&tokens=${JSON.stringify(tokens)}`)
         )
     );
     return Promise.all(promises);
@@ -112,6 +112,10 @@ async function runStuff(addresses : Addresses) {
 }
 async function handler(request: Request): Promise<Response> {
     let url = new URL(request.url);
+    if (url.pathname == "/ping") {
+        console.log("Hello from runner contract 👋")
+        return new Response("Pong");
+    }
     let addresses = {
         fa2Contract: url.searchParams.get("fa2_contract"),
         displayContract: url.searchParams.get("display_contract")
