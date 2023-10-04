@@ -35,6 +35,7 @@
               (rust-bin.stable."1.70.0".default.override {
                 targets = ["wasm32-unknown-unknown"];
               })
+              ligo
 
               rust-analyzer
               wabt
